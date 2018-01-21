@@ -4,7 +4,7 @@ Code written by Galen Cho (Woon Sang Cho): https://github.com/woonsangcho
 
 ### Summary
 
-This is an implementation of Proximal Policy Optimization (PPO)[1][2], which is a variant of Trust Region Policy Optimization TRPO)[3].
+This is an implementation of Proximal Policy Optimization (PPO)[1][2], which is a variant of Trust Region Policy Optimization (TRPO)[3].
 
 This is one version that resulted from experimenting a number of variants, in particular with loss functions, advantages[4], normalization, and a few other tricks in the reference papers.  I have clearly commented so that it is easy to follow, along with page numbers wherever necessary.
 
