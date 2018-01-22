@@ -10,10 +10,9 @@ This is one version that resulted from experimenting a number of variants, in pa
 
 
 ### Implementation notes
-- The parametrized value function is updated using the previous batch of trajectories, whereas the parametrized policy function and advantages are updated using the current batch of trajectories, as suggested in [5] to avoid overfitting. Please see the reference [5] for the core training scheme.
-- Raw rewards are scaled so that the discounted sums lie within the representational capacity of the neural network. Without scaling, the kernel and bias weight updates are rather slow and fail mapping to increasing discounted reward sums, and the error accumulates as training progresses. ```reward * 0.0025``` appears to work fine from observing the value losses per training iteration.
-- Also as an attempt to further constrain the output space, instead of constant scaling, I normalized each reward such that most of the mass of discounted sum of rewards roughly lies on the boundary of a unit ball, i.e. unit length in l_0 norm of discounted rewards by keeping running statistics. However, this resulted in mapping states to values which previous states were mapped to in previous iterations, resulting in slow learning curve.  
-- The network architecture for both value and policy is fixed with ```two``` hidden layers, each with ```128``` nodes with ```tanh``` activation. 
+- The parametrized value function is updated using the previous batch of trajectories, whereas the parametrized policy function and advantages are updated using the current batch of trajectories, as suggested in [5] to avoid overfitting. Please see the reference [5] for the core training scheme. 
+- The network architecture for both value and policy is fixed with ```two``` hidden layers, each with ```128``` nodes with ```tanh``` activation. The kernels in the value network are l2 regularized. 
+- As an attempt to constrain the output space of the value network, I normalized each reward such that most of the mass of discounted sum of rewards roughly lies on the boundary of a unit ball, i.e. ```unit length in l_0 norm of discounted rewards``` by keeping running statistics. However, this resulted in mapping states to values which previous states were mapped to in previous iterations, resulting in slow learning curve. 
 - The kernels in the layers are initialized with ```RandomNormal(mean=0, std=0.1)```, which is a heuristic I've found to be useful. The effect is that the outputs for mean action are centered around 0 during the initial stage of policy learning. If this center is very much off from 0, it results in a large random fluctuation of sampled actions, taking longer time to learn.
 - While it is noted in [3] that a ```separate set of parameters specifies the log standard deviation of each element```, I've experimented with merged network outputting both ```mean``` and ```sigma```, and with two separate networks for each. They had poor performance so the source is omitted from the repository. 
 - The value function is trained using the built-in fit routine in keras for convenient epoch and batch-size management. The policy function is trained using tensorflow over the entire batch of trajectories. You may modify the source to truncate the episodic rollout to a fixed horizon size ```T```. The suggested size is ```T=2048```, noted in the reference.
@@ -26,17 +25,14 @@ This is one version that resulted from experimenting a number of variants, in pa
 - [openai gym](https://github.com/openai/gym) (0.9.4)
 - [MuJoCo](https://github.com/openai/mujoco-py)
 
-### Sample run results in tensorboard
-
-
 ### Hyper-parameters
-These hyper-parameters follow the references, with some futher tuning. Please see find my comments for details.
+These hyper-parameters follow the references, with some futher changes. Please see find my comments for details.
 ```
 policy_learning_rate = 1 * 1e-04
 value_learning_rate = 1.5 * 1e-03
 n_policy_epochs = 20
 n_value_epochs = 15
-value_batch_size = 128
+value_batch_size = 512
 kl_target = 0.003
 beta = 1
 beta_max = 20
@@ -53,7 +49,7 @@ activation = 'tanh'
 python main.py --environ-string='InvertedPendulum-v1' --max-episode-count=1000
 python main.py --environ-string='InvertedDoublePendulum-v1' --max-episode-count=15000
 python main.py --environ-string='Hopper-v1' --max-episode-count=20000
-python main.py --environ-string='HalfCheetah-v1' --max-episode-count=15000
+python main.py --environ-string='HalfCheetah-v1' --max-episode-count=20000
 python main.py --environ-string='Swimmer-v1' --max-episode-count=5000
 python main.py --environ-string='Ant-v1' --max-episode-count=150000
 python main.py --environ-string='Reacher-v1' --max-episode-count=50000
@@ -63,7 +59,10 @@ python main.py --environ-string='HumanoidStandup-v1' --max-episode-count=150000
 ```
 The default seed input is ```1989```. You can append ```--seed=<value>``` to experiment different seeds.
 
+### Viewing results in tensorboard
+![tbvisual]((https://github.com/woonsangcho/a3c/blob/master/crop1.jpg)
 
+![tbvisual]((https://github.com/woonsangcho/a3c/blob/master/crop2.jpg)
 
 
 
