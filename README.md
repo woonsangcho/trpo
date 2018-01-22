@@ -60,6 +60,7 @@ python main.py --environ-string='HumanoidStandup-v1' --max-episode-count=150000
 The default seed input is ```1989```. You can append ```--seed=<value>``` to experiment different seeds.
 
 ### Viewing results in tensorboard
+#### HalfCheetah-v1
 ![tbvisual](https://github.com/woonsangcho/trpo/blob/master/crop1.jpg)
 
 ![tbvisual](https://github.com/woonsangcho/trpo/blob/master/crop2.jpg)
