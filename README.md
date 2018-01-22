@@ -11,6 +11,8 @@ This is one version that resulted from experimenting a number of variants, in pa
 
 ### Implementation notes
 - The parametrized value function is updated using the previous batch of trajectories, whereas the parametrized policy function and advantages are updated using the current batch of trajectories, as suggested in [5] to avoid overfitting. Please see the reference [5] for the core training scheme.
+- Raw rewards are scaled so that the discounted sums lie within the representational capacity of the neural network. Without scaling, the kernel and bias weight updates are rather slow and fail mapping to increasing discounted reward sums, and the error accumulates as training progresses. ```reward * 0.0025``` appears to work fine from observing the value losses per training iteration.
+- Also as an attempt to further constrain the output space, instead of constant scaling, I normalized each reward such that most of the mass of discounted sum of rewards roughly lies on the boundary of a unit ball, i.e. unit length in l_0 norm of discounted rewards by keeping running statistics. However, this resulted in mapping states to values which previous states were mapped to in previous iterations, resulting in slow learning curve.  
 - The network architecture for both value and policy is fixed with ```two``` hidden layers, each with ```128``` nodes with ```tanh``` activation. 
 - The kernels in the layers are initialized with ```RandomNormal(mean=0, std=0.1)```, which is a heuristic I've found to be useful. The effect is that the outputs for mean action are centered around 0 during the initial stage of policy learning. If this center is very much off from 0, it results in a large random fluctuation of sampled actions, taking longer time to learn.
 - While it is noted in [3] that a ```separate set of parameters specifies the log standard deviation of each element```, I've experimented with merged network outputting both ```mean``` and ```sigma```, and with two separate networks for each. They had poor performance so the source is omitted from the repository. 
@@ -34,7 +36,7 @@ policy_learning_rate = 1 * 1e-04
 value_learning_rate = 1.5 * 1e-03
 n_policy_epochs = 20
 n_value_epochs = 15
-value_batch_size = 32
+value_batch_size = 128
 kl_target = 0.003
 beta = 1
 beta_max = 20
@@ -42,7 +44,7 @@ beta_min = 1/20
 ksi = 10
 reward_discount = 0.995
 gae_discount = 0.975
-traj_batch_size = 20 # per batch number of episodes to collect for each training iteration
+traj_batch_size = 10 # per batch number of episodes to collect for each training iteration
 activation = 'tanh'
 ```
 
