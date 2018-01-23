@@ -112,8 +112,6 @@ class TRPO(NeuralNetwork):
         self.logp = (normal_dist.log_prob(self.actions_ph))
         self.prev_logp = (prev_normal_dist.log_prob(self.actions_ph))
         self.kl_divergence = tf.contrib.distributions.kl_divergence(normal_dist, prev_normal_dist)
-        # self.entropy = 0.5 * (self.env_action_number * (np.log(2 * np.pi) + 1) +
-        #                       tf.reduce_sum((tf.square(self.sigma))))
         self.entropy = tf.reduce_mean(tf.reduce_sum(normal_dist.entropy(), axis=1))
 
         ''' adaptive KL penalty coefficient 
